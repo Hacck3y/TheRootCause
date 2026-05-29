@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Root Cause | Civic Tech Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        appBg: 'var(--bg-main)',
+                        cardBg: 'var(--bg-card)',
+                        cardHover: 'var(--bg-card-hover)',
+                        borderMain: 'var(--border-main)',
+                        textMain: 'var(--text-main)',
+                        textMuted: 'var(--text-muted)',
+                        btnBg: 'var(--btn-bg)',
+                        btnHover: 'var(--btn-hover)',
+                        brand: '#f97316',
+                        brandHover: '#ea580c',
+                        persona: {
+                            critic: '#ef4444',
+                            thinker: '#3b82f6',
+                            jester: '#eab308',
+                            executor: '#22c55e',
+                            verifier: '#a855f7'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            /* Dark Mode (Default) */
+            --bg-main: #0b1120;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --border-main: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --btn-bg: #1e293b;
+            --btn-hover: #334155;
+            --input-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        .light-mode {
+            /* Light Mode */
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8fafc;
+            --border-main: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --btn-bg: #f1f5f9;
+            --btn-hover: #e2e8f0;
+            --input-bg: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-main);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .nav-item.active {
+            background-color: var(--btn-bg);
+            border-left: 4px solid #f97316;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .mobile-nav-item.active {
+            color: #f97316;
+        }
+
+        .interactive-card {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--text-muted);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #f97316;
+            color: #f97316;
+        }
+
+        /* Glassmorphism utilities */
+        .glass-header {
+            background: color-mix(in srgb, var(--bg-card) 85%, transparent);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Voice Channel Speaker Rings */
+        .speaker-ring {
+            box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px #22c55e;
+            animation: speakerPulse 2s infinite;
+        }
+
+        @keyframes speakerPulse {
+            0% {
+                box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px rgba(34, 197, 94, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 8px rgba(34, 197, 94, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px rgba(34, 197, 94, 0);
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen flex overflow-hidden antialiased text-sm md:text-base">
+
+    <!-- Global Toast Notification -->
+    <div id="toast"
+        class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-cardBg border border-borderMain text-textMain px-5 py-3 rounded-full shadow-2xl z-[100] hide flex items-center gap-3 transition-opacity duration-300">
+        <i class="fas fa-bell text-brand"></i>
+        <span id="toast-msg" class="font-medium">Notification</span>
+    </div>
+
+    <!-- ONBOARDING OVERLAY -->
+    <div id="view-onboarding"
+        class="fixed inset-0 bg-appBg z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="max-w-md w-full bg-cardBg rounded-2xl border border-borderMain shadow-2xl overflow-hidden animate-slide-up">
+            <div class="p-8 text-center border-b border-borderMain relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-brand/10 to-transparent"></div>
+                <i class="fas fa-project-diagram text-5xl text-brand mb-4 drop-shadow-md relative z-10"></i>
+                <h1 class="text-3xl font-extrabold tracking-tight relative z-10 text-textMain">The Root Cause</h1>
+                <p class="text-textMuted mt-2 text-sm relative z-10">Identify failures. Propose reforms. Drive action.
+                </p>
+            </div>
+
+            <!-- Step 1: Auth -->
+            <div id="onboard-step-1" class="p-8 space-y-4">
+                <p class="text-center text-sm text-textMuted mb-6" id="auth-status-text">Join thousands of civic
+                    thinkers. Real identities, real impact.</p>
+                <button id="google-login-btn"
+                    class="w-full bg-[#4285F4] hover:bg-[#3367D6] text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 transition shadow-md">
+                    <i class="fab fa-google text-xl"></i> Continue with Google
+                </button>
+                <button onclick="nextOnboardStep(2)"
+                    class="w-full bg-btnBg hover:bg-btnHover text-textMain font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 transition shadow-sm border border-borderMain">
+                    Skip for Demo
+                </button>
+            </div>
+
+            <!-- Step 2: Location & Username -->
+            <div id="onboard-step-2" class="p-8 hide animate-fade-in">
+                <h2 class="text-xl font-bold mb-4 text-textMain">Complete your Profile</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-textMuted mb-1 uppercase tracking-wider">Username</label>
+                        <div class="flex">
+                            <span
+                                class="inline-flex items-center px-3 rounded-l border border-r-0 border-borderMain bg-btnBg text-textMuted">@</span>
+                            <input type="text" id="reg-username" placeholder="citizen_kane"
+                                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r bg-[var(--input-bg)] border border-borderMain text-textMain focus:border-brand outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-textMuted mb-1 uppercase tracking-wider">Display
+                            Name</label>
+                        <input type="text" id="reg-name" placeholder="John Doe"
+                            class="w-full bg-[var(--input-bg)] border border-borderMain rounded-lg p-2 text-textMain outline-none focus:border-brand">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-textMuted mb-1 uppercase tracking-wider">State/UT</label>
+                            <select id="reg-state"
+                                class="w-full bg-[var(--input-bg)] border border-borderMain rounded-lg p-2 text-textMain outline-none focus:border-brand">
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-textMuted mb-1 uppercase tracking-wider">City/District</label>
+                            <input type="text" id="reg-district" placeholder="e.g., South Delhi"
+                                class="w-full bg-[var(--input-bg)] border border-borderMain rounded-lg p-2 text-textMain outline-none focus:border-brand"
+                                value="New Delhi">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="nextOnboardStep(3)"
+                    class="w-full bg-brand text-white font-bold py-3 px-4 rounded-xl hover:bg-brandHover transition mt-6 shadow-lg">
+                    Next <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+
+            <!-- Step 3: Persona Selection -->
+            <div id="onboard-step-3" class="p-8 hide animate-fade-in">
+                <h2 class="text-xl font-bold mb-1 text-textMain">Choose your Persona</h2>
+                <p class="text-xs text-textMuted mb-5">This indicates how you usually contribute to the platform.</p>
+
+                <div class="grid grid-cols-2 gap-3 mb-6 text-textMain">
+                    <button onclick="selectPersona('critic', event)"
+                        class="persona-btn border border-borderMain rounded-xl p-3 text-left hover:bg-btnBg transition group">
+                        <i class="fas fa-search text-red-500 text-xl mb-2 block group-hover:scale-110 transition"></i>
+                        <span class="font-bold block">Critic</span>
+                        <span class="text-[10px] text-textMuted block mt-1 leading-tight">Flags systemic failures</span>
+                    </button>
+                    <button onclick="selectPersona('thinker', event)"
+                        class="persona-btn border border-borderMain rounded-xl p-3 text-left hover:bg-btnBg transition group">
+                        <i
+                            class="fas fa-lightbulb text-blue-500 text-xl mb-2 block group-hover:scale-110 transition"></i>
+                        <span class="font-bold block">Thinker</span>
+                        <span class="text-[10px] text-textMuted block mt-1 leading-tight">Proposes policy reforms</span>
+                    </button>
+                    <button onclick="selectPersona('jester', event)"
+                        class="persona-btn border border-borderMain rounded-xl p-3 text-left hover:bg-btnBg transition group">
+                        <i class="fas fa-mask text-yellow-500 text-xl mb-2 block group-hover:scale-110 transition"></i>
+                        <span class="font-bold block">Jester</span>
+                        <span class="text-[10px] text-textMuted block mt-1 leading-tight">Uses political satire</span>
+                    </button>
+                    <button onclick="selectPersona('executor', event)"
+                        class="persona-btn border border-borderMain rounded-xl p-3 text-left hover:bg-btnBg transition group">
+                        <i
+                            class="fas fa-fist-raised text-green-500 text-xl mb-2 block group-hover:scale-110 transition"></i>
+                        <span class="font-bold block">Executor</span>
+                        <span class="text-[10px] text-textMuted block mt-1 leading-tight">Drives petitions &
+                            action</span>
+                    </button>
+                    <button onclick="selectPersona('verifier', event)"
+                        class="persona-btn col-span-2 border border-borderMain rounded-xl p-3 text-left hover:bg-btnBg transition flex items-center gap-4 group">
+                        <i class="fas fa-check-double text-purple-500 text-2xl group-hover:scale-110 transition"></i>
+                        <div>
+                            <span class="font-bold block">Verifier</span>
+                            <span class="text-[10px] text-textMuted block">Fact-checks claims & cites sources</span>
+                        </div>
+                    </button>
+                </div>
+                <button onclick="completeSignup()" id="finish-signup-btn"
+                    class="w-full bg-brand text-white font-bold py-3 px-4 rounded-xl hover:bg-brandHover transition shadow-lg">
+                    Enter Platform
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP LAYOUT -->
+    <!-- LEFT SIDEBAR: NAVIGATION -->
+    <aside class="w-64 bg-cardBg border-r border-borderMain flex-col hidden md:flex z-30 shadow-sm relative">
+        <div class="p-5 border-b border-borderMain">
+            <h2 class="text-xl font-black text-textMain flex items-center gap-3 tracking-tight">
+                <i class="fas fa-project-diagram text-brand"></i> THE ROOT CAUSE
+            </h2>
+        </div>
+
+        <div class="p-4 border-b border-borderMain flex items-center gap-3 cursor-pointer hover:bg-btnBg transition"
+            onclick="switchView('profile')">
+            <div class="w-10 h-10 rounded-full bg-btnBg border border-borderMain flex items-center justify-center font-bold text-lg text-white shadow-inner"
+                id="sidebar-avatar">U</div>
+            <div class="flex-1 min-w-0">
+                <div class="font-bold text-sm truncate text-textMain" id="sidebar-name">Demo User</div>
+                <div class="text-[11px] text-textMuted truncate"><span id="sidebar-username">@demo_user</span></div>
+            </div>
+            <div class="text-right">
+                <div class="text-xs font-bold text-brand" id="sidebar-points">0</div>
+                <div class="text-[9px] uppercase text-textMuted">Pts</div>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-3 px-2">
+            <ul class="space-y-1">
+                <li><a href="#" onclick="switchView('trending')" id="nav-trending"
+                        class="nav-item active rounded-lg block px-4 py-2.5 text-textMuted hover:text-textMain hover:bg-btnBg transition"><i
+                            class="fas fa-fire w-6 text-center"></i> Trending (24h)</a></li>
+                <li><a href="#" onclick="switchView('new')" id="nav-new"
+                        class="nav-item rounded-lg block px-4 py-2.5 text-textMuted hover:text-textMain hover:bg-btnBg transition"><i
+                            class="fas fa-clock w-6 text-center"></i> New Submissions</a></li>
+                <li><a href="#" onclick="switchView('submit')" id="nav-submit"
+                        class="nav-item rounded-lg block px-4 py-2.5 text-brand bg-brand/10 border border-brand/20 my-2 font-bold"><i
+                            class="fas fa-pen-nib w-6 text-center"></i> Submit Idea</a></li>
+                <li><a href="#" onclick="switchView('voice')" id="nav-voice"
+                        class="nav-item rounded-lg block px-4 py-2.5 text-textMuted hover:text-textMain hover:bg-btnBg transition"><i
+                            class="fas fa-headset w-6 text-center"></i> Live Arenas <span
+                            class="ml-2 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full animate-pulse">LIVE</span></a>
+                </li>
+                <li><a href="#" onclick="switchView('leaderboard')" id="nav-leaderboard"
+                        class="nav-item rounded-lg block px-4 py-2.5 text-textMuted hover:text-textMain hover:bg-btnBg transition"><i
+                            class="fas fa-trophy w-6 text-center"></i> Leaderboard</a></li>
+                <li><a href="#" onclick="switchView('quests')" id="nav-quests"
+                        class="nav-item rounded-lg block px-4 py-2.5 text-textMuted hover:text-textMain hover:bg-btnBg transition"><i
+                            class="fas fa-tasks w-6 text-center"></i> Civic Quests</a></li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-borderMain">
+            <button onclick="toggleTheme()"
+                class="w-full flex items-center justify-center gap-2 text-sm text-textMuted hover:text-textMain p-2 rounded-lg hover:bg-btnBg transition border border-transparent hover:border-borderMain">
+                <i class="fas fa-moon dark-icon"></i><i class="fas fa-sun light-icon hide"></i> <span
+                    id="theme-text">Toggle Theme</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MOBILE NAVIGATION (Bottom) -->
+    <nav
+        class="md:hidden fixed bottom-0 w-full glass-header border-t border-borderMain flex justify-around p-2 z-40 pb-safe">
+        <button onclick="switchView('trending')" id="mob-nav-trending"
+            class="mobile-nav-item active flex flex-col items-center p-2 text-textMuted"><i
+                class="fas fa-fire text-xl mb-1"></i><span class="text-[10px]">Feed</span></button>
+        <button onclick="switchView('voice')" id="mob-nav-voice"
+            class="mobile-nav-item flex flex-col items-center p-2 text-textMuted relative"><i
+                class="fas fa-headset text-xl mb-1"></i><span
+                class="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full border border-cardBg"></span><span
+                class="text-[10px]">Live</span></button>
+        <button onclick="switchView('submit')" id="mob-nav-submit"
+            class="mobile-nav-item flex flex-col items-center p-2 text-brand"><i
+                class="fas fa-plus-circle text-2xl mb-1 drop-shadow-md"></i><span
+                class="text-[10px]">Post</span></button>
+        <button onclick="switchView('leaderboard')" id="mob-nav-leaderboard"
+            class="mobile-nav-item flex flex-col items-center p-2 text-textMuted"><i
+                class="fas fa-trophy text-xl mb-1"></i><span class="text-[10px]">Rank</span></button>
+        <button onclick="switchView('profile')" id="mob-nav-profile"
+            class="mobile-nav-item flex flex-col items-center p-2 text-textMuted"><i
+                class="fas fa-user text-xl mb-1"></i><span class="text-[10px]">Profile</span></button>
+    </nav>
+
+    <!-- CENTER AREA: MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full relative overflow-y-auto pb-20 md:pb-0 bg-appBg" id="main-scroll">
+        <header
+            class="glass-header border-b border-borderMain px-5 py-3.5 sticky top-0 z-20 flex justify-between items-center">
+            <h2 id="header-title" class="text-xl font-bold tracking-tight text-textMain">Trending</h2>
+            <div class="flex items-center gap-5">
+                <button class="text-textMuted hover:text-brand transition"><i
+                        class="fas fa-search text-lg"></i></button>
+                <div class="relative">
+                    <button class="text-textMuted hover:text-brand transition"><i
+                            class="fas fa-bell text-lg"></i></button>
+                    <span
+                        class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-cardBg"></span>
+                </div>
+                <button onclick="toggleTheme()" class="md:hidden text-textMuted hover:text-brand transition"><i
+                        class="fas fa-moon dark-icon"></i><i class="fas fa-sun light-icon hide"></i></button>
+            </div>
+        </header>
+
+        <div class="p-3 md:p-6 w-full max-w-2xl mx-auto space-y-6">
+
+            <!-- FEED VIEW -->
+            <div id="view-feed" class="animate-fade-in">
+                <div id="feed-controls"
+                    class="flex flex-wrap items-center justify-between mb-5 bg-cardBg p-2 rounded-xl border border-borderMain shadow-sm gap-2">
+                    <div class="flex gap-1 bg-btnBg p-1 rounded-lg">
+                        <button class="tab-btn active px-4 py-1.5 text-sm font-bold rounded-md"
+                            onclick="filterFeed('national', this)">National</button>
+                        <button
+                            class="tab-btn px-4 py-1.5 text-sm font-medium rounded-md text-textMuted hover:text-textMain transition"
+                            onclick="filterFeed('state', this)" id="state-filter-btn">My State</button>
+                    </div>
+                    <select id="category-filter"
+                        class="bg-[var(--input-bg)] border border-borderMain text-xs rounded-lg p-2 text-textMain outline-none focus:border-brand cursor-pointer"
+                        onchange="renderFeed(currentSortType)">
+                        <option value="all">All Topics</option>
+                        <option>Public Infrastructure</option>
+                        <option>Exams & Education</option>
+                        <option>Corruption</option>
+                        <option>Transport & Traffic</option>
+                    </select>
+                </div>
+                <div id="feed-container" class="space-y-4"></div>
+            </div>
+
+            <!-- POST DETAIL VIEW -->
+            <div id="view-post-detail" class="hide animate-fade-in">
+                <button onclick="switchView(lastFeedView)"
+                    class="text-textMuted hover:text-textMain mb-4 text-sm font-medium flex items-center gap-2 bg-btnBg px-3 py-1.5 rounded-lg border border-borderMain transition w-max">
+                    <i class="fas fa-arrow-left"></i> Back to feed
+                </button>
+                <div id="focused-post-container"></div>
+
+                <div class="mt-6">
+                    <h3
+                        class="text-lg font-bold mb-4 border-b border-borderMain pb-2 text-textMain flex items-center gap-2">
+                        <i class="far fa-comments text-brand"></i> Discussion (<span id="detail-comment-count">0</span>)
+                    </h3>
+                    <div class="bg-cardBg rounded-xl border border-borderMain p-4 mb-6 shadow-sm">
+                        <textarea id="new-comment-text" rows="2"
+                            class="w-full bg-[var(--input-bg)] border border-borderMain rounded-lg p-3 text-textMain placeholder-textMuted outline-none focus:border-brand transition text-sm resize-none"
+                            placeholder="Add your perspective (Criticize, Verify, or Propose)..."></textarea>
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="text-[10px] text-textMuted uppercase font-bold"><i
+                                    class="fas fa-shield-alt"></i> Follow Community Guidelines</span>
+                            <button onclick="submitComment()"
+                                class="bg-brand text-white text-sm font-bold py-2 px-5 rounded-lg hover:bg-brandHover transition shadow-md">Post
+                                Reply</button>
+                        </div>
+                    </div>
+                    <div id="comments-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- LIVE ARENAS (Voice Channels) -->
+            <div id="view-voice" class="hide animate-fade-in space-y-4">
+                <div class="bg-cardBg border border-borderMain rounded-2xl p-6 text-center shadow-sm">
+                    <i class="fas fa-broadcast-tower text-4xl text-brand mb-3"></i>
+                    <h3 class="text-xl font-bold text-textMain mb-2">Live Arenas</h3>
+                    <p class="text-sm text-textMuted max-w-md mx-auto">Drop into live audio debates. Listen to
+                        townhalls, participate in policy teardowns, or start your own stage.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Room 1 -->
+                    <div class="bg-cardBg border border-borderMain rounded-xl p-5 hover:border-brand transition cursor-pointer group shadow-sm"
+                        onclick="openVoiceRoom('room1')">
+                        <div class="flex justify-between items-start mb-3">
+                            <span
+                                class="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded border border-red-500/20 uppercase flex items-center gap-1"><span
+                                    class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> LIVE</span>
+                            <span class="text-textMuted text-xs"><i class="fas fa-headphones"></i> 142</span>
+                        </div>
+                        <h4 class="font-bold text-lg text-textMain mb-1 group-hover:text-brand transition">The Great Tax
+                            Debate: Middle Class vs Services</h4>
+                        <p class="text-xs text-textMuted mb-4">Hosted by The Thinkers Coalition</p>
+                        <div class="flex items-center gap-[-10px]">
+                            <div
+                                class="w-8 h-8 rounded-full border-2 border-cardBg bg-blue-500 flex items-center justify-center text-xs font-bold text-white z-30">
+                                P</div>
+                            <div
+                                class="w-8 h-8 rounded-full border-2 border-cardBg bg-red-500 flex items-center justify-center text-xs font-bold text-white z-20 -ml-3">
+                                R</div>
+                            <div
+                                class="w-8 h-8 rounded-full border-2 border-cardBg bg-gray-600 flex items-center justify-center text-xs text-white z-10 -ml-3">
+                                +4</div>
+                        </div>
+                    </div>
+                    <!-- Room 2 -->
+                    <div class="bg-cardBg border border-borderMain rounded-xl p-5 hover:border-brand transition cursor-pointer group shadow-sm"
+                        onclick="openVoiceRoom('room2')">
+                        <div class="flex justify-between items-start mb-3">
+                            <span
+                                class="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded border border-red-500/20 uppercase flex items-center gap-1"><span
+                                    class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> LIVE</span>
+                            <span class="text-textMuted text-xs"><i class="fas fa-headphones"></i> 89</span>
+                        </div>
+                        <h4 class="font-bold text-lg text-textMain mb-1 group-hover:text-brand transition">NEET Paper
+                            Leak: Protest Planning & Legal Action</h4>
+                        <p class="text-xs text-textMuted mb-4">Hosted by Executors Union</p>
+                        <div class="flex items-center gap-[-10px]">
+                            <div
+                                class="w-8 h-8 rounded-full border-2 border-cardBg bg-green-500 flex items-center justify-center text-xs font-bold text-white z-30">
+                                A</div>
+                            <div
+                                class="w-8 h-8 rounded-full border-2 border-cardBg bg-purple-500 flex items-center justify-center text-xs font-bold text-white z-20 -ml-3">
+                                V</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIVE VOICE ROOM OVERLAY (Simulated) -->
+            <div id="active-voice-room" class="hide fixed inset-0 bg-appBg/95 backdrop-blur-sm z-[60] flex flex-col">
+                <header class="p-4 border-b border-borderMain flex justify-between items-center bg-cardBg">
+                    <button onclick="closeVoiceRoom()" class="text-textMuted hover:text-textMain"><i
+                            class="fas fa-chevron-down text-xl"></i></button>
+                    <h3 class="font-bold text-textMain text-lg" id="vc-title">Live Arena</h3>
+                    <button
+                        class="text-red-500 font-bold bg-red-500/10 px-3 py-1 rounded text-sm hover:bg-red-500 hover:text-white transition"
+                        onclick="closeVoiceRoom()">Leave</button>
+                </header>
+                <div class="flex-1 overflow-y-auto p-6 flex flex-col items-center pt-10">
+                    <div class="text-center mb-10">
+                        <div class="text-brand font-bold uppercase tracking-widest text-xs mb-2">Stage</div>
+                        <div class="flex justify-center gap-8 flex-wrap">
+                            <div class="text-center">
+                                <div
+                                    class="w-20 h-20 rounded-full bg-blue-500 mx-auto mb-2 flex items-center justify-center text-3xl text-white font-bold speaker-ring">
+                                    P</div>
+                                <div class="font-bold text-textMain text-sm">Priya (Thinker)</div>
+                                <div class="text-[10px] text-textMuted"><i class="fas fa-microphone text-green-500"></i>
+                                    Speaking</div>
+                            </div>
+                            <div class="text-center">
+                                <div
+                                    class="w-20 h-20 rounded-full bg-red-500 mx-auto mb-2 flex items-center justify-center text-3xl text-white font-bold relative">
+                                    R <div class="absolute bottom-0 right-0 bg-cardBg rounded-full p-1"><i
+                                            class="fas fa-microphone-slash text-xs text-textMuted"></i></div>
+                                </div>
+                                <div class="font-bold text-textMain text-sm">Rahul (Critic)</div>
+                                <div class="text-[10px] text-textMuted">Muted</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-md border-t border-borderMain pt-6">
+                        <div class="text-textMuted font-bold uppercase tracking-widest text-xs mb-4 text-center">
+                            Audience (142)</div>
+                        <div class="flex justify-center gap-3 flex-wrap opacity-60">
+                            <div class="w-10 h-10 rounded-full bg-gray-600"></div>
+                            <div class="w-10 h-10 rounded-full bg-yellow-600"></div>
+                            <div class="w-10 h-10 rounded-full bg-green-600"></div>
+                            <div class="w-10 h-10 rounded-full bg-purple-600"></div>
+                            <div
+                                class="w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center text-xs text-white">
+                                +138</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-cardBg border-t border-borderMain flex justify-center gap-4 pb-safe">
+                    <button
+                        class="bg-btnBg text-textMain px-6 py-3 rounded-full font-bold shadow hover:bg-borderMain transition flex items-center gap-2"><i
+                            class="fas fa-hand-paper text-yellow-500"></i> Request to Speak</button>
+                    <button
+                        class="bg-brand text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:bg-brandHover"><i
+                            class="fas fa-comment-dots text-xl"></i></button>
+                </div>
+            </div>
+
+            <!-- SUBMIT VIEW -->
+            <div id="view-submit"
+                class="hide animate-fade-in bg-cardBg rounded-2xl border border-borderMain p-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-6 border-b border-borderMain pb-4">
+                    <div class="w-12 h-12 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xl">
+                        <i class="fas fa-pen-nib"></i></div>
+                    <div>
+                        <h3 class="text-xl font-bold text-textMain">New Submission</h3>
+                        <p class="text-xs text-textMuted">Identify problems, cite evidence, propose solutions.</p>
+                    </div>
+                </div>
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-[10px] font-bold text-textMuted uppercase mb-1 ml-1">Headline</label>
+                        <input type="text" id="post-title"
+                            class="w-full bg-[var(--input-bg)] border border-borderMain rounded-xl p-3.5 text-textMain placeholder-textMuted outline-none focus:border-brand font-medium text-lg transition shadow-inner"
+                            placeholder="E.g., Proof of rigged contracts in Ward 4...">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-textMuted uppercase mb-1 ml-1">Detailed
+                            Breakdown</label>
+                        <textarea id="post-desc" rows="6"
+                            class="w-full bg-[var(--input-bg)] border border-borderMain rounded-xl p-3.5 text-textMain placeholder-textMuted outline-none focus:border-brand text-sm transition shadow-inner resize-y"
+                            placeholder="Describe the root cause, attach evidence links, or detail a reform blueprint..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-textMuted uppercase mb-1 ml-1">Topic
+                                Category</label>
+                            <select id="post-cat"
+                                class="w-full bg-[var(--input-bg)] border border-borderMain rounded-lg p-3 text-sm text-textMain outline-none focus:border-brand cursor-pointer">
+                                <option>Public Infrastructure</option>
+                                <option>Exams & Education</option>
+                                <option>Corruption</option>
+                                <option>Transport & Traffic</option>
+                                <option>Healthcare Access</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-textMuted uppercase mb-1 ml-1">Format
+                                Type</label>
+                            <select id="post-type"
+                                class="w-full bg-[var(--input-bg)] border border-borderMain rounded-lg p-3 text-sm text-textMain outline-none focus:border-brand cursor-pointer">
+                                <option>Root Cause Report</option>
+                                <option>Solution / Policy Idea</option>
+                                <option>News Analysis</option>
+                                <option>Satire / Humor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-borderMain flex justify-between items-center">
+                        <button
+                            class="text-textMuted hover:text-brand transition flex items-center gap-2 text-sm px-3 py-2 rounded-lg hover:bg-btnBg font-medium"
+                            onclick="showToast('Media uploads enabled after profile verification.')">
+                            <i class="fas fa-image"></i> Add Evidence
+                        </button>
+                        <button onclick="submitPost()"
+                            class="bg-brand hover:bg-brandHover text-white font-bold py-3 px-8 rounded-xl transition shadow-lg shadow-brand/20 flex items-center gap-2">
+                            Publish <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEADERBOARD VIEW -->
+            <div id="view-leaderboard" class="hide animate-fade-in space-y-4">
+                <div class="bg-cardBg rounded-2xl border border-borderMain overflow-hidden shadow-sm">
+                    <div
+                        class="p-6 border-b border-borderMain bg-gradient-to-r from-btnBg to-cardBg flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold flex items-center gap-2 text-textMain"><i
+                                    class="fas fa-medal text-yellow-500"></i> Civic Leaderboard</h3>
+                            <p class="text-xs text-textMuted mt-1">Ranked by Total Impact Points (Submissions, Upvotes,
+                                Quests)</p>
+                        </div>
+                    </div>
+                    <div id="leaderboard-list" class="divide-y divide-borderMain"></div>
+                </div>
+            </div>
+
+            <!-- QUESTS VIEW -->
+            <div id="view-quests" class="hide animate-fade-in space-y-4">
+                <div
+                    class="bg-gradient-to-br from-brand to-red-600 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+                    <i class="fas fa-bullseye absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
+                    <h3 class="text-3xl font-black mb-2 relative z-10 tracking-tight">Active Quests</h3>
+                    <p class="text-sm text-white/90 relative z-10 max-w-md">Complete specific civic tasks to earn heavy
+                        Impact Points and rank up your profile in the ecosystem.</p>
+                </div>
+                <div id="quests-list" class="space-y-3">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- PROFILE VIEW -->
+            <div id="view-profile" class="hide animate-fade-in space-y-4">
+                <div
+                    class="bg-cardBg rounded-2xl border border-borderMain p-6 shadow-sm text-center relative overflow-hidden">
+                    <div
+                        class="absolute top-0 left-0 w-full h-28 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-brand/10 border-b border-borderMain">
+                    </div>
+                    <div class="relative z-10 mt-12 mb-4">
+                        <div class="w-28 h-28 rounded-full bg-btnBg mx-auto flex items-center justify-center text-5xl font-black border-4 border-cardBg shadow-lg text-white"
+                            id="profile-avatar">U</div>
+                    </div>
+                    <h2 class="text-2xl font-bold tracking-tight text-textMain" id="profile-name">User Name</h2>
+                    <div class="text-textMuted text-sm mb-2 font-medium" id="profile-username">@username</div>
+                    <div class="text-xs text-textMuted mb-6 flex items-center justify-center gap-3">
+                        <span><i class="fas fa-map-marker-alt mr-1 text-brand"></i> <span
+                                id="profile-location">Location</span></span>
+                        <span><i class="far fa-calendar-alt mr-1"></i> Joined <span
+                                id="profile-joined">Today</span></span>
+                    </div>
+
+                    <div class="inline-block px-5 py-2 rounded-full border mb-8 shadow-sm" id="profile-persona-badge">
+                        <i class="fas fa-star mr-2"></i> Persona
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 border-t border-borderMain pt-8">
+                        <div class="bg-btnBg p-4 rounded-xl border border-borderMain/50">
+                            <div class="text-3xl font-black text-brand" id="profile-points">0</div>
+                            <div class="text-[10px] text-textMuted uppercase font-bold mt-1">Impact Pts</div>
+                        </div>
+                        <div class="bg-btnBg p-4 rounded-xl border border-borderMain/50">
+                            <div class="text-3xl font-black text-textMain" id="profile-posts">0</div>
+                            <div class="text-[10px] text-textMuted uppercase font-bold mt-1">Submissions</div>
+                        </div>
+                        <div class="bg-btnBg p-4 rounded-xl border border-borderMain/50">
+                            <div class="text-3xl font-black text-textMain" id="profile-upvotes">0</div>
+                            <div class="text-[10px] text-textMuted uppercase font-bold mt-1">Upvotes Rcvd</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center gap-4">
+                    <button
+                        class="text-sm font-bold bg-btnBg border border-borderMain text-textMain px-6 py-2.5 rounded-lg hover:bg-borderMain transition shadow-sm">
+                        <i class="fas fa-cog mr-2"></i> Settings
+                    </button>
+                    <button onclick="handleLogout()"
+                        class="text-sm font-bold bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-2.5 rounded-lg hover:bg-red-500 hover:text-white transition shadow-sm">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR: TRENDING & ONLINE (Desktop only) -->
+    <aside
+        class="w-72 bg-cardBg border-l border-borderMain hidden lg:block z-30 p-5 overflow-y-auto shadow-sm relative">
+        <!-- Search -->
+        <div class="relative mb-8">
+            <i class="fas fa-search absolute left-3 top-3 text-textMuted"></i>
+            <input type="text" placeholder="Search ideas, users, tags..."
+                class="w-full bg-[var(--input-bg)] border border-borderMain rounded-full py-2.5 pl-10 pr-4 text-sm text-textMain outline-none focus:border-brand">
+        </div>
+
+        <!-- Trending Topics -->
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-textMain mb-4 uppercase tracking-wider flex items-center gap-2"><i
+                    class="fas fa-chart-line text-brand"></i> Trending Topics</h3>
+            <div class="space-y-4">
+                <div class="cursor-pointer group">
+                    <div class="text-xs text-textMuted mb-0.5">National • Politics</div>
+                    <div class="font-bold text-sm text-textMain group-hover:text-brand transition">#NEETPaperScam</div>
+                    <div class="text-xs text-textMuted mt-0.5">14.2k Submissions</div>
+                </div>
+                <div class="cursor-pointer group">
+                    <div class="text-xs text-textMuted mb-0.5">Maharashtra • Infra</div>
+                    <div class="font-bold text-sm text-textMain group-hover:text-brand transition">#PotholeTaxWhen</div>
+                    <div class="text-xs text-textMuted mt-0.5">8,432 Submissions</div>
+                </div>
+                <div class="cursor-pointer group">
+                    <div class="text-xs text-textMuted mb-0.5">Economy</div>
+                    <div class="font-bold text-sm text-textMain group-hover:text-brand transition">#MiddleClassSqueeze
+                    </div>
+                    <div class="text-xs text-textMuted mt-0.5">5,102 Submissions</div>
+                </div>
+            </div>
+            <button class="text-brand text-xs font-bold mt-4 hover:underline">Show more</button>
+        </div>
+
+        <!-- Top Voices Online -->
+        <div>
+            <h3 class="text-sm font-bold text-textMain mb-4 uppercase tracking-wider flex items-center gap-2"><i
+                    class="fas fa-users text-green-500"></i> Active Voices</h3>
+            <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div
+                            class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs">
+                            P</div>
+                        <div
+                            class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-cardBg rounded-full">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-textMain leading-tight">Priya (Thinker) <i
+                                class="fas fa-check-circle text-brand text-[10px]" title="Verified Voice"></i></div>
+                        <div class="text-[10px] text-textMuted">Drafting a policy on Transit...</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div
+                            class="w-8 h-8 rounded-full bg-yellow-500 text-white flex items-center justify-center font-bold text-xs">
+                            M</div>
+                        <div
+                            class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-cardBg rounded-full">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-textMain leading-tight">MemeMantri</div>
+                        <div class="text-[10px] text-textMuted">Live in Arena: Tax Debate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="absolute bottom-5 left-5 right-5 text-center text-[10px] text-textMuted border-t border-borderMain pt-3">
+            <a href="#" class="hover:text-textMain">Terms</a> • <a href="#" class="hover:text-textMain">Privacy</a> • <a
+                href="#" class="hover:text-textMain">Guidelines</a><br>
+            © 2026 The Root Cause Portal
+        </div>
+    </aside>
+
+    <!-- POST TEMPLATE -->
+    <template id="post-template">
+        <article
+            class="interactive-card bg-cardBg border border-borderMain rounded-2xl p-4 md:p-5 relative overflow-hidden cursor-pointer shadow-sm mb-4"
+            onclick="openPostDetail(this.dataset.id)">
+            <div class="absolute left-0 top-0 bottom-0 w-1 persona-color-bar opacity-80"></div>
+
+            <div class="flex justify-between items-start mb-3 pl-2">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-full bg-btnBg flex items-center justify-center font-bold text-sm avatar-initial text-white shadow-inner">
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm author-name flex items-center gap-1.5 text-textMain">
+                            Name
+                            <i class="fas fa-check-circle text-brand text-[10px] verified-badge hide"
+                                title="Verified"></i>
+                            <span class="text-[10px] font-medium text-textMuted author-username">@user</span>
+                        </div>
+                        <div class="text-[11px] text-textMuted mt-0.5 flex items-center gap-1.5">
+                            <span
+                                class="persona-badge px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider"><i
+                                    class="icon mr-1"></i><span class="p-name"></span></span>
+                            • <span class="post-time"></span> • <i
+                                class="fas fa-map-marker-alt text-[10px] text-textMuted"></i> <span
+                                class="post-location"></span>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="text-[9px] uppercase font-bold text-textMuted bg-btnBg border border-borderMain px-2 py-1 rounded category-tag tracking-wider hidden sm:block">
+                    Cat</div>
+            </div>
+
+            <div class="pl-2">
+                <h3 class="text-base md:text-lg font-bold mb-2 post-title text-textMain leading-snug">Title</h3>
+                <p class="text-textMuted text-sm mb-3 post-desc line-clamp-3 leading-relaxed">Desc</p>
+                <div
+                    class="text-[10px] font-bold text-brand mb-4 post-type bg-brand/10 inline-block px-2 py-1 rounded border border-brand/20 uppercase tracking-wide">
+                    Type</div>
+            </div>
+
+            <div class="flex items-center justify-between border-t border-borderMain pt-3 pl-2"
+                onclick="event.stopPropagation()">
+                <div class="flex items-center gap-1 bg-btnBg rounded-full p-0.5 border border-borderMain shadow-sm">
+                    <button
+                        class="upvote-btn w-8 h-8 rounded-full flex justify-center items-center text-textMuted hover:text-brand hover:bg-borderMain transition"><i
+                            class="fas fa-arrow-up"></i></button>
+                    <span class="font-bold text-sm w-8 text-center score-val text-textMain">0</span>
+                    <button
+                        class="downvote-btn w-8 h-8 rounded-full flex justify-center items-center text-textMuted hover:text-blue-500 hover:bg-borderMain transition"><i
+                            class="fas fa-arrow-down"></i></button>
+                </div>
+                <div class="flex items-center gap-5">
+                    <button
+                        class="text-textMuted hover:text-textMain flex items-center gap-2 text-xs font-bold transition"><i
+                            class="far fa-comment-alt text-sm"></i> <span class="comments-count">0</span></button>
+                    <button
+                        class="text-textMuted hover:text-textMain flex items-center gap-2 text-xs font-bold transition"
+                        onclick="showToast('Link copied to clipboard');"><i class="fas fa-share text-sm"></i></button>
+                </div>
+            </div>
+        </article>
+    </template>
+
+    <!-- FIREBASE & LOGIC SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signInWithCustomToken, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- STATE & DATA ---
+        let authUser = null;
+        let currentUserData = null;
+        let allPosts = [];
+        let allUsers = [];
+        let currentViewId = 'trending';
+        let currentSortType = 'trending';
+        let currentFilter = 'national';
+        let activePostId = null;
+        let lastFeedView = 'trending';
+        let selectedPersonaTemp = null;
+        let listenersSetup = false;
+
+        const personas = {
+            critic: { name: 'Critic', color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/30', hex: '#ef4444', icon: 'fas fa-search' },
+            thinker: { name: 'Thinker', color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', hex: '#3b82f6', icon: 'fas fa-lightbulb' },
+            jester: { name: 'Jester', color: 'text-yellow-500', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', hex: '#eab308', icon: 'fas fa-mask' },
+            executor: { name: 'Executor', color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/30', hex: '#22c55e', icon: 'fas fa-fist-raised' },
+            verifier: { name: 'Verifier', color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/30', hex: '#a855f7', icon: 'fas fa-check-double' }
+        };
+
+        const mockQuests = [
+            { id: 1, title: 'Submit a verified local issue', desc: 'Post a Root Cause report with photographic evidence of a civic failure.', points: 150, completed: false },
+            { id: 2, title: 'Fact-check a trending debate', desc: 'Provide a reliable source link in the comments of a trending National issue.', points: 80, completed: false },
+            { id: 3, title: 'Propose a policy blueprint', desc: 'Write a detailed "Solution Idea" breaking down a legislative fix.', points: 200, completed: false }
+        ];
+
+        // --- GLOBAL UTILITIES (Hoisted for inline click handlers) ---
+        window.showToast = (message) => {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = message;
+            toast.classList.remove('hide', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.classList.add('hide'), 300);
+            }, 3000);
+        };
+
+        window.toggleTheme = () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+            document.querySelectorAll('.dark-icon').forEach(i => isLight ? i.classList.add('hide') : i.classList.remove('hide'));
+            document.querySelectorAll('.light-icon').forEach(i => isLight ? i.classList.remove('hide') : i.classList.add('hide'));
+        };
+
+        window.nextOnboardStep = (step) => {
+            document.getElementById('onboard-step-1').classList.add('hide');
+            document.getElementById('onboard-step-2').classList.add('hide');
+            document.getElementById('onboard-step-3').classList.add('hide');
+            const stepEl = document.getElementById(`onboard-step-${step}`);
+            if (stepEl) stepEl.classList.remove('hide');
+        };
+
+        window.selectPersona = (pid, e) => {
+            selectedPersonaTemp = pid;
+            document.querySelectorAll('.persona-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-offset-cardBg', 'bg-btnBg');
+                btn.style.borderColor = 'var(--border-main)';
+            });
+            const target = e.currentTarget || (e.target ? e.target.closest('.persona-btn') : null);
+            if (target) {
+                target.classList.add('ring-2', 'ring-offset-2', 'ring-offset-cardBg', 'bg-btnBg');
+                target.style.borderColor = personas[pid].hex;
+            }
+        };
+
+        window.updateProfileUI = () => {
+            if (!currentUserData) return;
+            const p = personas[currentUserData.persona];
+
+            document.getElementById('sidebar-name').innerText = currentUserData.name;
+            document.getElementById('sidebar-username').innerText = '@' + currentUserData.username;
+            document.getElementById('sidebar-avatar').innerText = currentUserData.name.charAt(0);
+            document.getElementById('sidebar-avatar').style.backgroundColor = p.hex;
+            document.getElementById('sidebar-points').innerText = currentUserData.points;
+
+            document.getElementById('profile-name').innerText = currentUserData.name;
+            document.getElementById('profile-username').innerText = '@' + currentUserData.username;
+            document.getElementById('profile-avatar').innerText = currentUserData.name.charAt(0);
+            document.getElementById('profile-avatar').style.backgroundColor = p.hex;
+            document.getElementById('profile-location').innerText = `${currentUserData.district}, ${currentUserData.state}`;
+
+            const badge = document.getElementById('profile-persona-badge');
+            badge.innerHTML = `<i class="${p.icon}"></i> ${p.name}`;
+            badge.className = `inline-block px-5 py-2 rounded-full text-xs font-bold border mb-8 shadow-sm ${p.color} ${p.border} ${p.bg}`;
+
+            document.getElementById('profile-points').innerText = currentUserData.points;
+            document.getElementById('profile-posts').innerText = currentUserData.posts;
+            document.getElementById('profile-upvotes').innerText = currentUserData.upvotesRcvd || 0;
+        };
+
+        window.switchView = (viewId) => {
+            currentViewId = viewId;
+            if (viewId === 'trending' || viewId === 'new') { lastFeedView = viewId; currentSortType = viewId; }
+
+            const titles = { trending: 'Trending Ideas', new: 'New Submissions', submit: 'Draft Submission', leaderboard: 'Civic Leaderboard', quests: 'Civic Quests', profile: 'My Profile', voice: 'Live Arenas' };
+            if (titles[viewId]) document.getElementById('header-title').innerText = titles[viewId];
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-textMain'));
+            document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+
+            if (document.getElementById('nav-' + viewId)) document.getElementById('nav-' + viewId).classList.add('active');
+            let mobId = viewId === 'trending' || viewId === 'new' ? 'mob-nav-trending' : 'mob-nav-' + viewId;
+            if (document.getElementById(mobId)) document.getElementById(mobId).classList.add('active');
+
+            ['view-feed', 'view-submit', 'view-leaderboard', 'view-quests', 'view-profile', 'view-post-detail', 'view-voice'].forEach(id => {
+                document.getElementById(id).classList.add('hide');
+            });
+
+            if (viewId === 'trending' || viewId === 'new') {
+                document.getElementById('view-feed').classList.remove('hide');
+                document.getElementById('feed-controls').classList.toggle('hide', viewId === 'new');
+                window.renderFeed(currentSortType);
+            } else if (viewId === 'post-detail') {
+                document.getElementById('view-post-detail').classList.remove('hide');
+                document.getElementById('header-title').innerText = 'Discussion Thread';
+            } else {
+                document.getElementById('view-' + viewId).classList.remove('hide');
+                if (viewId === 'leaderboard') window.renderLeaderboard();
+                if (viewId === 'quests') window.renderQuests();
+            }
+            document.getElementById('main-scroll').scrollTo(0, 0);
+        };
+
+        window.filterFeed = (scope, btnElement) => {
+            currentFilter = scope;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-brand');
+                btn.classList.add('text-textMuted');
+            });
+            btnElement.classList.remove('text-textMuted');
+            btnElement.classList.add('active', 'text-brand');
+            window.renderFeed(currentSortType);
+        };
+
+        // Initialize Theme from Storage
+        if (localStorage.getItem('theme') === 'light') window.toggleTheme();
+
+        // Populate Indian States
+        const states = ["Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
+        const stateSelect = document.getElementById('reg-state');
+        if (stateSelect) {
+            states.forEach(state => {
+                const opt = document.createElement('option');
+                opt.value = state;
+                opt.textContent = state;
+                if (state === 'Delhi') opt.selected = true;
+                stateSelect.appendChild(opt);
+            });
+        }
+
+        // --- FIREBASE CONFIGURATION ---
+        let firebaseConfig = { apiKey: "mock", authDomain: "mock", projectId: "mock", storageBucket: "mock", messagingSenderId: "mock", appId: "mock" };
+        const isCanvasEnv = typeof __firebase_config !== 'undefined';
+        if (isCanvasEnv) {
+            try { firebaseConfig = JSON.parse(__firebase_config); } catch (e) { console.error("Firebase config parsing error:", e); }
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const publicDataRef = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
+        const usersCol = publicDataRef('users');
+        const postsCol = publicDataRef('posts');
+
+
+        // Rich Mock Data (The "Remarks") to make the demo look alive if DB is empty
+        const heavyMockPosts = [
+            {
+                id: 'm1', authorId: 'u2', authorName: 'Priya K.', username: 'priya_policy', persona: 'thinker', location: 'Maharashtra', verified: true,
+                title: 'Blueprint: Decentralized Pothole Tax & Reporting Dashboard',
+                desc: 'Instead of waiting for the municipality to act blindly, we can create an open-source map. If we integrate delivery app APIs (Swiggy/Zomato), drivers can ping pothole locations automatically via their accelerometer data. This removes the friction of manual reporting. I have attached a basic GitHub repo outlining the data flow. We need Developers to join this.',
+                category: 'Public Infrastructure', type: 'Solution / Policy Idea',
+                upvotes: new Array(145).fill('x'), downvotes: new Array(12).fill('y'),
+                comments: [
+                    { id: 1, authorName: 'Amit Singh', username: 'amit_exec', persona: 'executor', text: 'Great idea. I can start building the API integration prototype this weekend. Let me fork the repo.', time: Date.now() - 3000000 },
+                    { id: 2, authorName: 'Rahul Das', username: 'rd_watchdog', persona: 'critic', text: 'Tech is fine, but who forces the BMC to actually look at the dashboard? Technology cannot fix political apathy.', time: Date.now() - 1000000 },
+                    { id: 3, authorName: 'MemeMantri', username: 'satire_god', persona: 'jester', text: 'Bro BMC will just tax us for using the dashboard. "Digital Pothole Viewing Cess - 2%".', time: Date.now() - 500000 }
+                ], timestamp: Date.now() - 3600000 * 4, voted: null
+            },
+            {
+                id: 'm2', authorId: 'u1', authorName: 'Rahul Das', username: 'rd_watchdog', persona: 'critic', location: 'Delhi', verified: false,
+                title: 'NEET Exam Leaks: How the structural integrity of testing collapsed',
+                desc: 'The recent paper leaks aren’t a bug; they are a feature of a highly centralized, under-audited testing monopoly. Students are burning 4 years of their lives preparing, only to lose out to organized syndicates buying papers on Telegram for 30 Lakhs. The NTA needs to be dissolved and replaced with a decentralized, state-board-led testing federation.',
+                category: 'Exams & Education', type: 'Root Cause Report',
+                upvotes: new Array(890).fill('x'), downvotes: new Array(45).fill('y'),
+                comments: [
+                    { id: 4, authorName: 'Dr. Veracity', username: 'fact_check_raj', persona: 'verifier', text: 'According to the 2024 committee report, there were 14 structural vulnerabilities identified in the transport of physical papers. Link here: [nta-audit-report-2024.pdf]', time: Date.now() - 2000000 }
+                ], timestamp: Date.now() - 3600000 * 12, voted: null
+            },
+            {
+                id: 'm3', authorId: 'u3', authorName: 'MemeMantri', username: 'satire_god', persona: 'jester', location: 'Karnataka', verified: true,
+                title: 'Vande Bharat trains now moving at advanced bullock cart speeds',
+                desc: 'Paid premium fare to reach 30 minutes faster. Train gets delayed by 2 hours because a cow decided to inspect the tracks and the signaling system from 1992 failed again. At this point, just give me a horse and an umbrella, it’s more reliable.',
+                category: 'Transport & Traffic', type: 'Satire / Humor',
+                upvotes: new Array(1250).fill('x'), downvotes: new Array(210).fill('y'),
+                comments: [], timestamp: Date.now() - 3600000 * 2, voted: null
+            },
+            {
+                id: 'm4', authorId: 'u4', authorName: 'Vikram', username: 'vik_reformer', persona: 'executor', location: 'Bihar', verified: false,
+                title: 'Data Collection Quest: Mapping collapsed bridges in rural sectors',
+                desc: 'We are launching a grassroots data collection drive. If you live in a district where a bridge or road project was inaugurated but collapsed within a year, we need photo evidence and the name of the contractor. We are compiling this for a mass PIL (Public Interest Litigation).',
+                category: 'Corruption', type: 'Root Cause Report',
+                upvotes: new Array(420).fill('x'), downvotes: new Array(15).fill('y'),
+                comments: [], timestamp: Date.now() - 1800000, voted: null
+            }
+        ];
+
+        const mockUsersList = [
+            { id: 'u1', name: 'Rahul Das', username: 'rd_watchdog', state: 'Delhi', persona: 'critic', points: 4500, verified: false },
+            { id: 'u2', name: 'Priya K.', username: 'priya_policy', state: 'Maharashtra', persona: 'thinker', points: 8200, verified: true },
+            { id: 'u3', name: 'MemeMantri', username: 'satire_god', state: 'Karnataka', persona: 'jester', points: 12900, verified: true },
+            { id: 'u4', name: 'Amit Singh', username: 'amit_exec', state: 'Uttar Pradesh', persona: 'executor', points: 3100, verified: false }
+        ];
+
+        // --- AUTHENTICATION ---
+        const initAuth = async () => {
+            if (isCanvasEnv) {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Auth init error:", error);
+                    try { await signInAnonymously(auth); } catch (err) { }
+                }
+            }
+        };
+        initAuth();
+
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        if (googleLoginBtn) {
+            googleLoginBtn.addEventListener('click', async () => {
+                googleLoginBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Authenticating...`;
+                if (!isCanvasEnv) {
+                    const provider = new GoogleAuthProvider();
+                    try {
+                        await signInWithPopup(auth, provider);
+                    } catch (e) {
+                        window.showToast("Auth failed: " + e.message);
+                        googleLoginBtn.innerHTML = `<i class="fab fa-google text-xl"></i> Continue with Google`;
+                    }
+                } else {
+                    if (auth.currentUser) { checkUserProfile(auth.currentUser); }
+                    else {
+                        await initAuth();
+                        if (auth.currentUser) checkUserProfile(auth.currentUser);
+                        else {
+                            window.showToast("Initializing connection. Please wait.");
+                            googleLoginBtn.innerHTML = `<i class="fab fa-google text-xl"></i> Continue with Google`;
+                        }
+                    }
+                }
+            });
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            authUser = user;
+            if (user) { checkUserProfile(user); }
+            else {
+                document.getElementById('view-onboarding').classList.remove('hide');
+                document.getElementById('onboard-step-1').classList.remove('hide');
+                document.getElementById('onboard-step-2').classList.add('hide');
+
+                // If not logged in, we still want the feed to look alive for the demo behind the modal
+                allPosts = [...heavyMockPosts];
+                allUsers = [...mockUsersList];
+                window.renderFeed('trending');
+            }
+        });
+
+        async function checkUserProfile(user) {
+            if (!user) return;
+            try {
+                const docSnap = await getDoc(doc(usersCol, user.uid));
+                if (docSnap.exists()) {
+                    currentUserData = { id: user.uid, ...docSnap.data() };
+                    document.getElementById('view-onboarding').classList.add('hide');
+                    document.getElementById('state-filter-btn').innerText = currentUserData.state;
+                    window.updateProfileUI();
+                    setupDataListeners();
+                    window.switchView('trending');
+                    window.showToast("Welcome back!");
+                } else {
+                    window.nextOnboardStep(2);
+                }
+            } catch (e) { console.error("Error fetching user profile", e); }
+        }
+
+        window.completeSignup = async () => {
+            const uname = document.getElementById('reg-username').value.trim();
+            const name = document.getElementById('reg-name').value.trim() || 'New Citizen';
+            if (!uname) return window.showToast("Username is required");
+            if (!selectedPersonaTemp) return window.showToast("Please select a Persona");
+
+            const newUserData = {
+                name: name, username: uname,
+                state: document.getElementById('reg-state').value,
+                district: document.getElementById('reg-district').value,
+                persona: selectedPersonaTemp,
+                points: 10, posts: 0, upvotesRcvd: 0,
+                joined: new Date().toLocaleDateString(),
+                verified: false
+            };
+
+            const btn = document.getElementById('finish-signup-btn');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving Profile...`;
+
+            try {
+                if (authUser) {
+                    await setDoc(doc(usersCol, authUser.uid), newUserData);
+                    currentUserData = { id: authUser.uid, ...newUserData };
+                } else {
+                    currentUserData = { id: 'demo_user', ...newUserData };
+                }
+
+                document.getElementById('view-onboarding').classList.add('hide');
+                document.getElementById('state-filter-btn').innerText = currentUserData.state;
+                window.updateProfileUI();
+                setupDataListeners();
+                window.switchView('trending');
+                window.showToast("Account Created! +10 Pts");
+            } catch (e) {
+                window.showToast("Local Demo Mode Active");
+                currentUserData = { id: 'demo_user', ...newUserData };
+                document.getElementById('view-onboarding').classList.add('hide');
+                window.updateProfileUI();
+                allPosts = [...heavyMockPosts];
+                allUsers = [...mockUsersList, currentUserData];
+                window.renderFeed('trending');
+                console.error(e);
+            }
+        };
+
+        window.handleLogout = async () => {
+            if (auth) await signOut(auth);
+            currentUserData = null;
+            window.showToast("Signed out.");
+            setTimeout(() => location.reload(), 500);
+        };
+
+        // --- REAL-TIME DATA ---
+        function setupDataListeners() {
+            if (!authUser || listenersSetup) return;
+            listenersSetup = true;
+
+            onSnapshot(postsCol, (snapshot) => {
+                let fbPosts = [];
+                snapshot.forEach(d => { fbPosts.push({ id: d.id, ...d.data() }); });
+
+                if (fbPosts.length < 10) {
+                    allPosts = [...fbPosts, ...heavyMockPosts];
+                } else {
+                    allPosts = fbPosts;
+                }
+
+                if (currentViewId === 'post-detail' && activePostId) {
+                    window.openPostDetail(activePostId);
+                } else if (currentViewId === 'trending' || currentViewId === 'new') {
+                    window.renderFeed(currentSortType);
+                }
+            }, (err) => {
+                console.error(err);
+                allPosts = [...heavyMockPosts];
+                window.renderFeed(currentSortType);
+            });
+
+            onSnapshot(usersCol, (snapshot) => {
+                let fbUsers = [];
+                snapshot.forEach(d => { fbUsers.push({ id: d.id, ...d.data() }); });
+
+                if (fbUsers.length < 5) {
+                    allUsers = [...fbUsers, ...mockUsersList];
+                } else {
+                    allUsers = fbUsers;
+                }
+
+                const updatedMe = allUsers.find(u => u.id === authUser.uid);
+                if (updatedMe) {
+                    currentUserData = updatedMe;
+                    window.updateProfileUI();
+                }
+                if (currentViewId === 'leaderboard') window.renderLeaderboard();
+            }, (err) => console.error(err));
+        }
+
+        // --- RENDERING HELPERS ---
+        function calculateScore(post) {
+            const up = post.upvotes ? post.upvotes.length : 0;
+            const down = post.downvotes ? post.downvotes.length : 0;
+            const comms = post.comments ? post.comments.length : 0;
+            return up - down + (comms * 2);
+        }
+
+        function getTimeAgo(timestamp) {
+            const diff = Math.floor((Date.now() - timestamp) / 60000);
+            if (diff < 1) return 'Just now';
+            if (diff < 60) return `${diff}m ago`;
+            if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+            return `${Math.floor(diff / 1440)}d ago`;
+        }
+
+        window.renderFeed = (sortType) => {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
+
+            let filtered = [...allPosts];
+
+            if (sortType === 'trending' && currentFilter === 'state' && currentUserData) {
+                filtered = filtered.filter(p => p.location === currentUserData.state);
+            }
+            const catSelect = document.getElementById('category-filter');
+            if (catSelect && catSelect.value !== 'all') {
+                filtered = filtered.filter(p => p.category === catSelect.value);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-16 text-textMuted border border-dashed border-borderMain rounded-xl mx-2"><i class="fas fa-ghost text-4xl mb-3 opacity-30"></i><p>No submissions found for this filter. Be the first.</p></div>`;
+                return;
+            }
+
+            if (sortType === 'trending') {
+                filtered.sort((a, b) => calculateScore(b) - calculateScore(a));
+            } else {
+                filtered.sort((a, b) => b.timestamp - a.timestamp);
+            }
+
+            filtered.forEach(post => { container.appendChild(createPostElement(post)); });
+        };
+
+        function createPostElement(post, isDetail = false) {
+            const template = document.getElementById('post-template');
+            const clone = template.content.cloneNode(true);
+            const article = clone.querySelector('article');
+            const pConfig = personas[post.persona] || personas['critic'];
+
+            article.dataset.id = post.id;
+            if (isDetail) {
+                article.classList.remove('interactive-card', 'cursor-pointer');
+                article.classList.add('shadow-md');
+                article.onclick = null;
+            }
+
+            clone.querySelector('.author-name').firstChild.textContent = post.authorName + " ";
+            clone.querySelector('.author-username').innerText = '@' + post.username;
+            clone.querySelector('.avatar-initial').innerText = post.authorName.charAt(0);
+            clone.querySelector('.avatar-initial').style.backgroundColor = pConfig.hex;
+            clone.querySelector('.persona-color-bar').style.backgroundColor = pConfig.hex;
+
+            if (post.verified) clone.querySelector('.verified-badge').classList.remove('hide');
+
+            const badge = clone.querySelector('.persona-badge');
+            badge.className = `persona-badge px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${pConfig.color} ${pConfig.border} ${pConfig.bg}`;
+            badge.querySelector('.icon').className = pConfig.icon;
+            badge.querySelector('.p-name').innerText = pConfig.name;
+
+            clone.querySelector('.post-location').innerText = post.location;
+            clone.querySelector('.post-time').innerText = getTimeAgo(post.timestamp);
+            clone.querySelector('.category-tag').innerText = post.category;
+            clone.querySelector('.post-type').innerText = post.type;
+            clone.querySelector('.post-title').innerText = post.title;
+
+            const descEl = clone.querySelector('.post-desc');
+            descEl.innerText = post.desc;
+            if (isDetail) descEl.classList.remove('line-clamp-3');
+
+            const upvotesCount = post.upvotes ? post.upvotes.length : 0;
+            const downvotesCount = post.downvotes ? post.downvotes.length : 0;
+            clone.querySelector('.score-val').innerText = upvotesCount - downvotesCount;
+            clone.querySelector('.comments-count').innerText = post.comments ? post.comments.length : 0;
+
+            const upBtn = clone.querySelector('.upvote-btn');
+            const downBtn = clone.querySelector('.downvote-btn');
+
+            const uid = authUser ? authUser.uid : 'demo_user';
+            if (post.upvotes && post.upvotes.includes(uid)) {
+                upBtn.classList.add('text-brand', 'bg-borderMain'); upBtn.classList.remove('text-textMuted');
+            }
+            if (post.downvotes && post.downvotes.includes(uid)) {
+                downBtn.classList.add('text-blue-500', 'bg-borderMain'); downBtn.classList.remove('text-textMuted');
+            }
+
+            upBtn.onclick = (e) => { e.stopPropagation(); window.handleVote(post.id, 'up'); };
+            downBtn.onclick = (e) => { e.stopPropagation(); window.handleVote(post.id, 'down'); };
+
+            return article;
+        }
+
+        // --- INTERACTION LOGIC ---
+        window.submitPost = async () => {
+            if (!currentUserData) return window.showToast("Please log in to submit");
+            const title = document.getElementById('post-title').value;
+            const desc = document.getElementById('post-desc').value;
+            if (!title || !desc) return window.showToast("Headline and breakdown are required.");
+
+            const uid = authUser ? authUser.uid : 'demo_user';
+            const newPost = {
+                authorId: uid, authorName: currentUserData.name, username: currentUserData.username,
+                persona: currentUserData.persona, location: currentUserData.state, verified: currentUserData.verified || false,
+                title: title, desc: desc,
+                category: document.getElementById('post-cat').value, type: document.getElementById('post-type').value,
+                upvotes: [uid], downvotes: [], comments: [], timestamp: Date.now()
+            };
+
+            try {
+                if (authUser) {
+                    const postRef = doc(postsCol);
+                    await setDoc(postRef, newPost);
+                    await updateDoc(doc(usersCol, uid), { posts: currentUserData.posts + 1, points: currentUserData.points + 10 });
+                } else {
+                    newPost.id = 'loc_' + Date.now();
+                    allPosts.unshift(newPost);
+                    currentUserData.posts += 1;
+                    currentUserData.points += 10;
+                    window.updateProfileUI();
+                }
+
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-desc').value = '';
+                window.showToast("Blueprint Published! +10 Pts");
+                window.switchView('new');
+            } catch (e) { console.error(e); window.showToast("Error publishing"); }
+        };
+
+        window.handleVote = async (postId, type) => {
+            if (!currentUserData) return window.showToast("Log in to vote");
+
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            let upvotes = post.upvotes || [];
+            let downvotes = post.downvotes || [];
+            const uid = authUser ? authUser.uid : 'demo_user';
+
+            let changed = false;
+
+            if (type === 'up') {
+                if (upvotes.includes(uid)) { upvotes = upvotes.filter(id => id !== uid); }
+                else { upvotes.push(uid); downvotes = downvotes.filter(id => id !== uid); }
+                changed = true;
+            } else if (type === 'down') {
+                if (downvotes.includes(uid)) { downvotes = downvotes.filter(id => id !== uid); }
+                else { downvotes.push(uid); upvotes = upvotes.filter(id => id !== uid); }
+                changed = true;
+            }
+
+            if (changed) {
+                post.upvotes = upvotes;
+                post.downvotes = downvotes;
+
+                try {
+                    if (authUser && !postId.startsWith('m') && !postId.startsWith('loc')) {
+                        await updateDoc(doc(postsCol, postId), { upvotes, downvotes });
+                    } else {
+                        if (currentViewId === 'post-detail') window.openPostDetail(postId);
+                        else window.renderFeed(currentSortType);
+                    }
+                } catch (e) { console.error(e); }
+            }
+        };
+
+        window.openPostDetail = (postId) => {
+            activePostId = postId;
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            window.switchView('post-detail');
+            const container = document.getElementById('focused-post-container');
+            container.innerHTML = '';
+            container.appendChild(createPostElement(post, true));
+
+            document.getElementById('detail-comment-count').innerText = post.comments ? post.comments.length : 0;
+
+            const list = document.getElementById('comments-list');
+            list.innerHTML = '';
+
+            const comments = post.comments || [];
+            if (comments.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-textMuted border border-dashed border-borderMain rounded-xl bg-[var(--input-bg)]">Be the first to analyze this root cause.</div>`;
+                return;
+            }
+
+            comments.sort((a, b) => b.time - a.time).forEach(c => {
+                const pConfig = personas[c.persona] || personas['critic'];
+                list.innerHTML += `
+                    <div class="bg-[var(--input-bg)] border border-borderMain rounded-xl p-4 flex gap-3 shadow-sm">
+                        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm text-white shadow-inner" style="background-color: ${pConfig.hex}">${c.authorName.charAt(0)}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline gap-2 mb-1">
+                                <span class="font-bold text-sm text-textMain">${c.authorName}</span>
+                                <span class="text-[10px] text-textMuted font-medium">@${c.username}</span>
+                                <span class="text-[10px] text-textMuted ml-auto">${getTimeAgo(c.time)}</span>
+                            </div>
+                            <div class="text-[9px] uppercase font-bold tracking-wider mb-2 ${pConfig.color}"><i class="${pConfig.icon} mr-1"></i>${pConfig.name}</div>
+                            <p class="text-sm text-textMain leading-relaxed">${c.text}</p>
+                            <div class="mt-3 text-xs text-textMuted flex gap-4 pt-2 border-t border-borderMain/50">
+                                <button class="hover:text-brand transition flex items-center gap-1"><i class="fas fa-arrow-up"></i> Upvote</button>
+                                <button class="hover:text-red-400 transition flex items-center gap-1" onclick="showToast('Reported')"><i class="fas fa-flag"></i> Report</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        window.submitComment = async () => {
+            if (!currentUserData) return window.showToast("Log in to discuss");
+            const input = document.getElementById('new-comment-text');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const post = allPosts.find(p => p.id === activePostId);
+            if (!post) return;
+
+            const newComment = {
+                id: Date.now(),
+                authorName: currentUserData.name, username: currentUserData.username,
+                persona: currentUserData.persona, text: text, time: Date.now()
+            };
+
+            const updatedComments = post.comments ? [...post.comments, newComment] : [newComment];
+            post.comments = updatedComments;
+
+            try {
+                if (authUser && !activePostId.startsWith('m') && !activePostId.startsWith('loc')) {
+                    await updateDoc(doc(postsCol, activePostId), { comments: updatedComments });
+                    await updateDoc(doc(usersCol, authUser.uid), { points: currentUserData.points + 2 });
+                } else {
+                    currentUserData.points += 2;
+                    window.updateProfileUI();
+                }
+                input.value = '';
+                window.showToast("Perspective added. +2 Points");
+                window.openPostDetail(activePostId);
+            } catch (e) { console.error(e); }
+        };
+
+        // --- LEADERBOARD & QUESTS ---
+        window.renderLeaderboard = () => {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+
+            const sortedUsers = [...allUsers].sort((a, b) => b.points - a.points).slice(0, 10);
+
+            sortedUsers.forEach((user, index) => {
+                const p = personas[user.persona] || personas['critic'];
+                const isMe = currentUserData && user.id === currentUserData.id;
+                const bgClass = isMe ? 'bg-btnBg border-l-4 border-brand' : '';
+
+                let rankIcon = `<span class="text-textMuted font-bold w-6 text-center">${index + 1}</span>`;
+                if (index === 0) rankIcon = `<i class="fas fa-crown text-yellow-500 w-6 text-center text-xl drop-shadow-md"></i>`;
+                if (index === 1) rankIcon = `<i class="fas fa-medal text-gray-300 w-6 text-center text-lg drop-shadow-sm"></i>`;
+                if (index === 2) rankIcon = `<i class="fas fa-medal text-amber-600 w-6 text-center text-lg drop-shadow-sm"></i>`;
+
+                list.innerHTML += `
+                    <div class="p-4 flex items-center justify-between ${bgClass} hover:bg-[var(--input-bg)] transition">
+                        <div class="flex items-center gap-4">
+                            ${rankIcon}
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white shadow-inner text-lg" style="background-color: ${p.hex}">${user.name.charAt(0)}</div>
+                            <div>
+                                <div class="font-bold text-base text-textMain">${user.name} ${user.verified ? '<i class="fas fa-check-circle text-brand text-[10px]"></i>' : ''} ${isMe ? '<span class="text-[10px] text-brand bg-brand/10 px-1 rounded ml-1 uppercase">You</span>' : ''}</div>
+                                <div class="text-[11px] ${p.color} flex items-center gap-1 mt-0.5 font-bold uppercase tracking-wider"><i class="${p.icon}"></i> ${p.name}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-black text-textMain text-xl">${user.points.toLocaleString()}</div>
+                            <div class="text-[9px] text-textMuted uppercase font-bold tracking-wider">Impact Pts</div>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        window.renderQuests = () => {
+            const list = document.getElementById('quests-list');
+            list.innerHTML = '';
+            mockQuests.forEach(q => {
+                list.innerHTML += `
+                    <div class="bg-cardBg border border-borderMain rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-textMuted transition">
+                        <div>
+                            <div class="font-bold text-textMain mb-1 text-base">${q.title}</div>
+                            <div class="text-xs text-textMuted mb-3">${q.desc}</div>
+                            <div class="text-[10px] text-brand font-bold uppercase tracking-widest px-2.5 py-1 bg-brand/10 inline-block rounded-md border border-brand/20">+${q.points} Impact Pts</div>
+                        </div>
+                        <button onclick="window.completeQuest(${q.id}, ${q.points})" class="${q.completed ? 'bg-btnBg text-textMuted border border-borderMain cursor-not-allowed' : 'bg-cardBg border border-brand text-brand hover:bg-brand hover:text-white shadow-sm'} px-6 py-3 rounded-xl text-sm font-bold transition whitespace-nowrap" ${q.completed ? 'disabled' : ''}>
+                            ${q.completed ? 'Claimed <i class="fas fa-check ml-1"></i>' : 'Claim Reward'}
+                        </button>
+                    </div>
+                `;
+            });
+        };
+
+        window.completeQuest = (id, pts) => {
+            const q = mockQuests.find(q => q.id === id);
+            if (q) q.completed = true;
+            if (currentUserData) {
+                currentUserData.points += pts;
+                if (authUser) updateDoc(doc(usersCol, authUser.uid), { points: currentUserData.points });
+                window.updateProfileUI();
+            }
+            window.showToast(`Quest Completed! +${pts} Pts`);
+            window.renderQuests();
+        };
+
+        // --- VOICE CHANNELS (Arenas) ---
+        window.openVoiceRoom = (roomId) => {
+            const titles = { 'room1': 'The Great Tax Debate: Middle Class vs Services', 'room2': 'NEET Paper Leak: Protest Planning & Legal Action' };
+            document.getElementById('vc-title').innerText = titles[roomId] || 'Live Arena';
+            document.getElementById('active-voice-room').classList.remove('hide');
+        };
+
+        window.closeVoiceRoom = () => {
+            document.getElementById('active-voice-room').classList.add('hide');
+        };
+    </script>
+</body>
+
+</html>
